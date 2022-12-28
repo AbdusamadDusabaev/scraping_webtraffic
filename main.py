@@ -70,9 +70,9 @@ def get_web_traffic(domain):
         print("[INFO] Try again...")
         error_count += 1
         if error_count < 5:
-            error_count = 0
             return get_web_traffic(domain)
         else:
+            error_count = 0
             total_visits = "no data"
             return {"total_visits": total_visits, "source": url}
 
