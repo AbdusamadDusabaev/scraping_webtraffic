@@ -1,5 +1,4 @@
 import datetime
-
 import httplib2
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
@@ -130,4 +129,4 @@ def update_status(status, index=None, page=None, amount_domains=None):
 
 
 if __name__ == "__main__":
-    print(str(datetime.date.today()).split("-")[-1])
+    print("[INFO] Чтобы запустить парсер, запустите скрипт main.py")

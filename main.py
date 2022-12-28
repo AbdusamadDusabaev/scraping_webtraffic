@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import time
 from connect import get_data_1, get_data_2, record_data_pr, record_data_marketing_website, record_data_launchpads
 from connect import record_data_funds, record_data_pr500, record_data_2, update_status, get_data_pr
-from ssl import SSLEOFError
+from ssl import SSLEOFError, SSLZeroReturnError
 
 
 timeout = 30
@@ -12,6 +12,7 @@ ua_chrome = " ".join(["Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "AppleWebKit/
                       "Chrome/108.0.0.0 Safari/537.36"])
 headers = {"user-agent": ua_chrome}
 proxies = {"https": f"http://services2821:f9960f@103.214.110.62:10185"}
+error_count = 0
 
 
 def update_ip():
@@ -21,6 +22,7 @@ def update_ip():
 
 
 def get_web_traffic(domain):
+    global error_count
     url = f"https://spymetrics.ru/ru/website/{domain}"
     try:
         response = requests.get(url=url, headers=headers, proxies=proxies)
@@ -63,10 +65,16 @@ def get_web_traffic(domain):
         else:
             total_visits = total_visits.find(name="td", class_="text-right").text.strip()
             return {"total_visits": total_visits, "source": url}
-    except SSLEOFError:
-        print("[ERROR] SSLEOFError")
-        total_visits = "no data"
-        return {"total_visits": total_visits, "source": url}
+    except (SSLEOFError, SSLZeroReturnError):
+        print("[ERROR] SSLError")
+        print("[INFO] Try again...")
+        error_count += 1
+        if error_count < 5:
+            error_count = 0
+            return get_web_traffic(domain)
+        else:
+            total_visits = "no data"
+            return {"total_visits": total_visits, "source": url}
 
 
 def get_market_cap(url):
