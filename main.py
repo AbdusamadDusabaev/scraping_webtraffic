@@ -4,7 +4,8 @@ from bs4 import BeautifulSoup
 import time
 from connect import get_data_1, get_data_2, record_data_pr, record_data_marketing_website, record_data_launchpads
 from connect import record_data_funds, record_data_pr500, record_data_2, update_status, get_data_pr
-from ssl import SSLEOFError, SSLZeroReturnError
+from ssl import SSLEOFError, SSLZeroReturnError, SSLError
+from http.client import RemoteDisconnected
 
 
 timeout = 30
@@ -25,28 +26,28 @@ def get_web_traffic(domain):
     global error_count
     url = f"https://spymetrics.ru/ru/website/{domain}"
     try:
-        response = requests.get(url=url, headers=headers, proxies=proxies)
+        response = requests.get(url=url, headers=headers, proxies=proxies, verify=False)
         print(f"[INFO] Status Code: {response.status_code}")
         bs_object = BeautifulSoup(response.content, "lxml")
         total_visits = bs_object.find(name="table", id="engagementTable")
         if response.status_code == 403 or total_visits is None:
             time.sleep(35)
             update_ip()
-            response = requests.get(url=url, headers=headers, proxies=proxies)
+            response = requests.get(url=url, headers=headers, proxies=proxies, verify=False)
             print(f"[INFO] Status Code: {response.status_code}")
             bs_object = BeautifulSoup(response.content, "lxml")
             total_visits = bs_object.find(name="table", id="engagementTable")
             if response.status_code == 403 or total_visits is None:
                 time.sleep(35)
                 update_ip()
-                response = requests.get(url=url, headers=headers, proxies=proxies)
+                response = requests.get(url=url, headers=headers, proxies=proxies, verify=False)
                 print(f"[INFO] Status Code: {response.status_code}")
                 bs_object = BeautifulSoup(response.content, "lxml")
                 total_visits = bs_object.find(name="table", id="engagementTable")
                 if response.status_code == 403 or total_visits is None:
                     time.sleep(35)
                     update_ip()
-                    response = requests.get(url=url, headers=headers, proxies=proxies)
+                    response = requests.get(url=url, headers=headers, proxies=proxies, verify=False)
                     print(f"[INFO] Status Code: {response.status_code}")
                     bs_object = BeautifulSoup(response.content, "lxml")
                     total_visits = bs_object.find(name="table", id="engagementTable")
@@ -65,8 +66,8 @@ def get_web_traffic(domain):
         else:
             total_visits = total_visits.find(name="td", class_="text-right").text.strip()
             return {"total_visits": total_visits, "source": url}
-    except (SSLEOFError, SSLZeroReturnError):
-        print("[ERROR] SSLError")
+    except (SSLEOFError, SSLZeroReturnError, SSLError, RemoteDisconnected):
+        print("[ERROR] Server's error")
         print("[INFO] Try again...")
         error_count += 1
         if error_count < 5:
